@@ -9,6 +9,7 @@ const OIDC_ISSUER = process.env.OIDC_ISSUER;
 const OIDC_CLIENT_ID = process.env.OIDC_CLIENT_ID;
 const OIDC_CLIENT_SECRET = process.env.OIDC_CLIENT_SECRET;
 const OIDC_REDIRECT_URI = process.env.OIDC_REDIRECT_URI;
+const FRONTEND_URL = process.env.FRONTEND_URL || '';
 
 const app = express();
 app.use(session({
@@ -16,6 +17,11 @@ app.use(session({
   resave: false,
   saveUninitialized: false,
 }));
+app.use((req, res, next) => {
+  if (FRONTEND_URL) res.header('Access-Control-Allow-Origin', FRONTEND_URL);
+  res.header('Access-Control-Allow-Headers', 'Authorization');
+  next();
+});
 
 let client = null;
 let endSessionEndpoint = null;
@@ -85,10 +91,27 @@ app.get('/auth/callback', async (req, res) => {
       accessToken: tokenSet.access_token,
     };
     delete req.session.oidc;
+    if (FRONTEND_URL) {
+      return res.redirect(`${FRONTEND_URL}/?access_token=${encodeURIComponent(tokenSet.access_token)}`);
+    }
     res.redirect('/');
   } catch (err) {
     console.error('[auth] callback failed:', err.message);
     res.status(500).send(`Callback failed: ${err.message}`);
+  }
+});
+
+// Bearer-token variant for a separate frontend (mirrors 01-split-component-bearer-token-design.md)
+app.get('/api/whoami', async (req, res) => {
+  if (!client) return res.status(503).json({ error: 'oidc_not_configured' });
+  const auth = req.get('Authorization') || '';
+  const token = auth.startsWith('Bearer ') ? auth.slice(7) : null;
+  if (!token) return res.status(401).json({ error: 'missing_bearer_token' });
+  try {
+    const claims = await client.userinfo(token);
+    res.json(claims);
+  } catch (err) {
+    res.status(401).json({ error: 'invalid_token', message: err.message });
   }
 });
 
