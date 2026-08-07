@@ -28,7 +28,7 @@ let endSessionEndpoint = null;
 
 async function init() {
   if (!OIDC_ISSUER || !OIDC_CLIENT_ID || !OIDC_CLIENT_SECRET || !OIDC_REDIRECT_URI) {
-    console.warn('[auth] OIDC env vars not fully set — /auth/login will 503');
+    console.warn('[auth] OIDC env vars not fully set — /oidc/login will 503');
     return;
   }
   const issuer = await Issuer.discover(OIDC_ISSUER);
@@ -44,12 +44,12 @@ async function init() {
 
 app.get('/', (req, res) => {
   if (!req.session.user) {
-    return res.send('<h1>Managed Auth login demo</h1><p><a href="/auth/login">Sign in</a></p>');
+    return res.send('<h1>Managed Auth login demo</h1><p><a href="/oidc/login">Sign in</a></p>');
   }
   const { claims, accessToken } = req.session.user;
   res.send(`
     <h1>Signed in</h1>
-    <p><a href="/auth/logout">Sign out</a></p>
+    <p><a href="/oidc/logout">Sign out</a></p>
     <h2>ID token claims</h2>
     <pre>${JSON.stringify(claims, null, 2)}</pre>
     <p>Access token present: ${accessToken ? 'yes (' + accessToken.length + ' chars)' : 'no'}</p>
@@ -62,7 +62,7 @@ app.get('/whoami', (req, res) => {
   res.json(req.session.user.claims);
 });
 
-app.get('/auth/login', (req, res) => {
+app.get('/oidc/login', (req, res) => {
   if (!client) return res.status(503).send('OIDC not configured');
   const code_verifier = generators.codeVerifier();
   const state = generators.state();
@@ -76,7 +76,7 @@ app.get('/auth/login', (req, res) => {
   res.redirect(authUrl);
 });
 
-app.get('/auth/callback', async (req, res) => {
+app.get('/oidc/callback', async (req, res) => {
   if (!client) return res.status(503).send('OIDC not configured');
   const saved = req.session.oidc;
   if (!saved) return res.redirect('/?error=missing_session');
@@ -115,7 +115,7 @@ app.get('/api/whoami', async (req, res) => {
   }
 });
 
-app.get('/auth/logout', (req, res) => {
+app.get('/oidc/logout', (req, res) => {
   req.session.destroy(() => {
     if (endSessionEndpoint) {
       return res.redirect(`${endSessionEndpoint}?post_logout_redirect_uri=${encodeURIComponent(OIDC_REDIRECT_URI.replace(/\/auth\/callback$/, '/'))}`);

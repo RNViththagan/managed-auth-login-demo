@@ -12,7 +12,7 @@
   const token = sessionStorage.getItem('access_token');
 
   if (!token) {
-    app.innerHTML = '<p><a href="' + window.BACKEND_URL + '/auth/login">Sign in</a></p>';
+    app.innerHTML = '<p><a href="' + window.BACKEND_URL + '/oidc/login">Sign in</a></p>';
     return;
   }
 
@@ -23,7 +23,7 @@
     .then(({ status, body }) => {
       if (status !== 200) {
         sessionStorage.removeItem('access_token');
-        app.innerHTML = '<p>Token rejected (' + status + '): ' + JSON.stringify(body) + '</p><p><a href="' + window.BACKEND_URL + '/auth/login">Sign in again</a></p>';
+        app.innerHTML = '<p>Token rejected (' + status + '): ' + JSON.stringify(body) + '</p><p><a href="' + window.BACKEND_URL + '/oidc/login">Sign in again</a></p>';
         return;
       }
       app.innerHTML = '<h2>Signed in</h2><pre>' + JSON.stringify(body, null, 2) + '</pre>' +
