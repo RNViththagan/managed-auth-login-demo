@@ -1,0 +1,10 @@
+schemaVersion: 1.1
+endpoints:
+  - name: whoami
+    displayName: Whoami
+    service:
+      basePath: /
+      port: 8080
+    type: REST
+    networkVisibilities:
+      - Public

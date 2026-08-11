@@ -1,0 +1,12 @@
+{
+  "name": "whoami-service-node",
+  "version": "1.0.0",
+  "description": "Echoes every incoming request header, to inspect what Choreo injects into a Service",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": "20.x"
+  }
+}
