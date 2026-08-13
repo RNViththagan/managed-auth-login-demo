@@ -1,0 +1,9 @@
+schemaVersion: 1.1
+
+# Declares the dependency on the whoami Service. Choreo uses this to (a) subscribe the
+# component to that API and (b) add the API's scopes to the token Managed Authentication
+# requests — without it, /choreo-apis/... returns 401 even with a valid session.
+dependencies:
+  connectionReferences:
+    - name: whoami
+      resourceRef: service:/copilot-test/whoami-service/v1/5c69c/PUBLIC
